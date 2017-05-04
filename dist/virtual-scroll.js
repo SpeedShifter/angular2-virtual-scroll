@@ -8,6 +8,7 @@ var VirtualScrollComponent = (function () {
         this.renderer = renderer;
         this.items = [];
         this.update = new core_1.EventEmitter();
+        this.isUpdateRequired = false;
         this.change = new core_1.EventEmitter();
         this.start = new core_1.EventEmitter();
         this.end = new core_1.EventEmitter();
@@ -17,6 +18,7 @@ var VirtualScrollComponent = (function () {
         this.onScrollListener = this.renderer.listen(this.element.nativeElement, 'scroll', this.refresh.bind(this));
         this.scrollbarWidth = 0; // this.element.nativeElement.offsetWidth - this.element.nativeElement.clientWidth;
         this.scrollbarHeight = 0; // this.element.nativeElement.offsetHeight - this.element.nativeElement.clientHeight;
+        this.isUpdateRequired = this.update.observers.length > 0;
     };
     VirtualScrollComponent.prototype.ngOnChanges = function (changes) {
         this.previousStart = undefined;
@@ -35,14 +37,16 @@ var VirtualScrollComponent = (function () {
     VirtualScrollComponent.prototype.refresh = function () {
         requestAnimationFrame(this.calculateItems.bind(this));
     };
-    VirtualScrollComponent.prototype.scrollInto = function (item) {
-        var index = (this.items || []).indexOf(item);
-        if (index < 0 || index >= (this.items || []).length)
+    VirtualScrollComponent.prototype.scrollInto = function (index) {
+        if (index < 0 || index >= this.getListLength())
             return;
         var d = this.calculateDimensions();
         this.element.nativeElement.scrollTop = Math.floor(index / d.itemsPerRow) *
             d.childHeight - Math.max(0, (d.itemsPerCol - 1)) * d.childHeight;
         this.refresh();
+    };
+    VirtualScrollComponent.prototype.getListLength = function () {
+        return this.length || (this.items && this.items.length) || 0;
     };
     VirtualScrollComponent.prototype.countItemsPerRow = function () {
         var offsetTop;
@@ -58,8 +62,7 @@ var VirtualScrollComponent = (function () {
     VirtualScrollComponent.prototype.calculateDimensions = function () {
         var el = this.element.nativeElement;
         var content = this.contentElementRef.nativeElement;
-        var items = this.items || [];
-        var itemCount = items.length;
+        var itemCount = this.getListLength();
         var viewWidth = el.clientWidth - this.scrollbarWidth;
         var viewHeight = el.clientHeight - this.scrollbarHeight;
         var contentDimensions;
@@ -89,9 +92,11 @@ var VirtualScrollComponent = (function () {
         };
     };
     VirtualScrollComponent.prototype.calculateItems = function () {
+        if (this.getListLength() === 0) {
+            return;
+        }
         var el = this.element.nativeElement;
         var d = this.calculateDimensions();
-        var items = this.items || [];
         this.scrollHeight = d.childHeight * d.itemCount / d.itemsPerRow;
         if (this.element.nativeElement.scrollTop > this.scrollHeight) {
             this.element.nativeElement.scrollTop = this.scrollHeight;
@@ -105,10 +110,15 @@ var VirtualScrollComponent = (function () {
         }
         var maxStart = Math.max(0, maxStartEnd - d.itemsPerCol * d.itemsPerRow - d.itemsPerRow);
         var start = Math.min(maxStart, Math.floor(indexByScrollTop) * d.itemsPerRow);
+        if (start === Number.NaN || end === Number.NaN) {
+            return;
+        }
         this.topPadding = d.childHeight * Math.ceil(start / d.itemsPerRow);
         if (start !== this.previousStart || end !== this.previousEnd) {
-            // update the scroll list
-            this.update.emit(items.slice(start, end));
+            if (this.isUpdateRequired) {
+                // update the scroll list
+                this.update.emit((this.items || []).slice(start, end));
+            }
             // emit 'start' event
             if (start !== this.previousStart && this.startupLoop === false) {
                 this.start.emit({ start: start, end: end });
@@ -119,11 +129,9 @@ var VirtualScrollComponent = (function () {
             }
             this.previousStart = start;
             this.previousEnd = end;
+            this.change.emit({ start: start, end: end });
             if (this.startupLoop === true) {
                 this.refresh();
-            }
-            else {
-                this.change.emit({ start: start, end: end });
             }
         }
         else if (this.startupLoop === true) {
@@ -137,7 +145,8 @@ VirtualScrollComponent.decorators = [
     { type: core_1.Component, args: [{
                 selector: 'virtual-scroll',
                 template: "\n    <div class=\"total-padding\" [style.height]=\"scrollHeight + 'px'\"></div>\n    <div class=\"scrollable-content\" #content [style.transform]=\"'translateY(' + topPadding + 'px)'\">\n      <ng-content></ng-content>\n    </div>\n  ",
-                styles: ["\n    :host {\n      overflow: hidden;\n      overflow-y: auto;\n      position: relative;\n      -webkit-overflow-scrolling: touch;\n    }\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      position: absolute;\n    }\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n  "]
+                styles: ["\n    :host {\n      overflow: hidden;\n      overflow-y: auto;\n      position: relative;\n      -webkit-overflow-scrolling: touch;\n    }\n\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      position: absolute;\n    }\n\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n  "],
+                changeDetection: core_1.ChangeDetectionStrategy.OnPush
             },] },
 ];
 /** @nocollapse */
@@ -147,6 +156,8 @@ VirtualScrollComponent.ctorParameters = function () { return [
 ]; };
 VirtualScrollComponent.propDecorators = {
     'items': [{ type: core_1.Input },],
+    'origin': [{ type: core_1.Input },],
+    'length': [{ type: core_1.Input },],
     'scrollbarWidth': [{ type: core_1.Input },],
     'scrollbarHeight': [{ type: core_1.Input },],
     'childWidth': [{ type: core_1.Input },],

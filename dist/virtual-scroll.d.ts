@@ -7,11 +7,14 @@ export declare class VirtualScrollComponent implements OnInit, OnDestroy, OnChan
     private element;
     private renderer;
     items: any[];
+    origin: any;
+    length: number;
     scrollbarWidth: number;
     scrollbarHeight: number;
     childWidth: number;
     childHeight: number;
     update: EventEmitter<any[]>;
+    isUpdateRequired: boolean;
     change: EventEmitter<ChangeEvent>;
     start: EventEmitter<ChangeEvent>;
     end: EventEmitter<ChangeEvent>;
@@ -27,7 +30,8 @@ export declare class VirtualScrollComponent implements OnInit, OnDestroy, OnChan
     ngOnChanges(changes: SimpleChanges): void;
     ngOnDestroy(): void;
     refresh(): void;
-    scrollInto(item: any): void;
+    scrollInto(index: number): void;
+    private getListLength();
     private countItemsPerRow();
     private calculateDimensions();
     private calculateItems();
