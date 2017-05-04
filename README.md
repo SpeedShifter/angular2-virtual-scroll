@@ -1,5 +1,6 @@
 ## Note
 This is a clone of [Original project](https://github.com/rintoj/angular2-virtual-scroll)
+[See difference](#difference)
 
 # angular2-virtual-scroll
 
@@ -114,11 +115,17 @@ Child component is not a necessity if your item is simple enough. See below.
 </virtual-scroll>
 ```
 
+**Difference from original project <a id='#difference'></a>**
+Instead of providing array that would be sliced by directive, you can provide 'virtual' length of list, and slice or do any other manipulations on 'change' event, emitted by component.
+[See usage example.](#virtual-array-usage)
+
 ## API
 
 | Attribute      | Type   | Description
 |----------------|--------|------------
 | items          | any[]  | The data that builds the templates within the virtual scroll. This is the same data that you'd pass to ngFor. It's important to note that when this data has changed, then the entire virtual scroll is refreshed.
+| origin         | any    | The object used for forcing change detection, usually it's an object (or array), virtual array is dependent on
+| length         | number | The length of items list, used for virtual array
 | childWidth     | number | The minimum width of the item template's cell. This dimension is used to help determine how many cells should be created when initialized, and to help calculate the height of the scrollable area. Note that the actual rendered size of the first cell is used by default if not specified.
 | childHeight    | number | The minimum height of the item template's cell. This dimension is used to help determine how many cells should be created when initialized, and to help calculate the height of the scrollable area. Note that the actual rendered size of the first cell is used by default if not specified.
 | update         | Event  | This event is fired every time `start` or `end` index change and emits list of items from `start` to `end`. The list emitted by this event must be used with `*ngFor` to render the actual list of items within `<virtual-scroll>`
@@ -217,6 +224,23 @@ export class ListComponent {
 ```
 
 This will be deprecated once [Resize Observer](https://wicg.github.io/ResizeObserver/) is fully implemented.
+
+## Virtual array <a id="#virtual-array-usage"></a>
+[See source codes](./demo/src/app/lists/virtual-array.component.ts)
+Because we are slicing input array on our own, we don't need (update) output, and in that case virtual-scroll component won't slice array by itself, saving some performance for us.
+
+```
+<virtual-scroll
+  [origin]="filteredList"
+  [length]="filteredList.length"
+  (change)="scrollItems = filteredList.slice($event.start, $event.end); indices = $event">
+
+  <list-item *ngFor="let item of scrollItems" [item]="item"></list-item>
+
+</virtual-scroll>
+```
+
+Note that \[items\] input in that case is optional, but you can use it for forcing change detection, however \[origin\] is better way.
 
 ## Contributing
 Contributions are very welcome! Just send a pull request. Feel free to contact me or checkout my [GitHub](https://github.com/rintoj) page.

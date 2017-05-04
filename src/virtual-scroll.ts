@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -48,12 +49,16 @@ export interface ChangeEvent {
       width: 1px;
       opacity: 0;
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input()
   items: any[] = [];
+
+  @Input()
+  origin: any;
 
   @Input()
   length: number;
