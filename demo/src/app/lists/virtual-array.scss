@@ -1,0 +1,16 @@
+@import '../../variables';
+:host {
+  list-item {
+    display: block;
+    overflow: hidden;
+    vertical-align: top;
+    border: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  virtual-array-scroll {
+    height: 75vh;
+    background: #ebf1f5;
+  }
+}

@@ -10,7 +10,7 @@ import {
   Output,
   Renderer,
   SimpleChanges,
-  ViewChild,
+  ViewChild
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
@@ -35,6 +35,7 @@ export interface ChangeEvent {
       position: relative;
       -webkit-overflow-scrolling: touch;
     }
+
     .scrollable-content {
       top: 0;
       left: 0;
@@ -42,6 +43,7 @@ export interface ChangeEvent {
       height: 100%;
       position: absolute;
     }
+
     .total-padding {
       width: 1px;
       opacity: 0;
@@ -52,6 +54,9 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input()
   items: any[] = [];
+
+  @Input()
+  length: number;
 
   @Input()
   scrollbarWidth: number;
@@ -67,6 +72,7 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
 
   @Output()
   update: EventEmitter<any[]> = new EventEmitter<any[]>();
+  isUpdateRequired = false;
 
   @Output()
   change: EventEmitter<ChangeEvent> = new EventEmitter<ChangeEvent>();
@@ -77,7 +83,7 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
   @Output()
   end: EventEmitter<ChangeEvent> = new EventEmitter<ChangeEvent>();
 
-  @ViewChild('content', { read: ElementRef })
+  @ViewChild('content', {read: ElementRef})
   contentElementRef: ElementRef;
 
   onScrollListener: Function;
@@ -87,12 +93,15 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
   previousEnd: number;
   startupLoop: boolean = true;
 
-  constructor(private element: ElementRef, private renderer: Renderer) { }
+  constructor(private element: ElementRef, private renderer: Renderer) {
+  }
 
   ngOnInit() {
     this.onScrollListener = this.renderer.listen(this.element.nativeElement, 'scroll', this.refresh.bind(this));
     this.scrollbarWidth = 0; // this.element.nativeElement.offsetWidth - this.element.nativeElement.clientWidth;
     this.scrollbarHeight = 0; // this.element.nativeElement.offsetHeight - this.element.nativeElement.clientHeight;
+
+    this.isUpdateRequired = this.update.observers.length > 0;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -115,14 +124,17 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
     requestAnimationFrame(this.calculateItems.bind(this));
   }
 
-  scrollInto(item: any) {
-    let index: number = (this.items || []).indexOf(item);
-    if (index < 0 || index >= (this.items || []).length) return;
+  scrollInto(index: number) {
+    if (index < 0 || index >= this.getListLength()) return;
 
     let d = this.calculateDimensions();
     this.element.nativeElement.scrollTop = Math.floor(index / d.itemsPerRow) *
       d.childHeight - Math.max(0, (d.itemsPerCol - 1)) * d.childHeight;
     this.refresh();
+  }
+
+  private getListLength() {
+    return this.length || (this.items && this.items.length) || 0;
   }
 
   private countItemsPerRow() {
@@ -140,8 +152,7 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
     let el = this.element.nativeElement;
     let content = this.contentElementRef.nativeElement;
 
-    let items = this.items || [];
-    let itemCount = items.length;
+    let itemCount = this.getListLength();
     let viewWidth = el.clientWidth - this.scrollbarWidth;
     let viewHeight = el.clientHeight - this.scrollbarHeight;
 
@@ -175,10 +186,13 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private calculateItems() {
+    if (this.getListLength() === 0) {
+      return;
+    }
+
     let el = this.element.nativeElement;
 
     let d = this.calculateDimensions();
-    let items = this.items || [];
     this.scrollHeight = d.childHeight * d.itemCount / d.itemsPerRow;
     if (this.element.nativeElement.scrollTop > this.scrollHeight) {
       this.element.nativeElement.scrollTop = this.scrollHeight;
@@ -195,31 +209,36 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
     let maxStart = Math.max(0, maxStartEnd - d.itemsPerCol * d.itemsPerRow - d.itemsPerRow);
     let start = Math.min(maxStart, Math.floor(indexByScrollTop) * d.itemsPerRow);
 
+    if (start === Number.NaN || end === Number.NaN) {
+      return;
+    }
+
     this.topPadding = d.childHeight * Math.ceil(start / d.itemsPerRow);
     if (start !== this.previousStart || end !== this.previousEnd) {
 
-      // update the scroll list
-      this.update.emit(items.slice(start, end));
+      if (this.isUpdateRequired) { // we don't wont to make unnecessary slice operation
+        // update the scroll list
+        this.update.emit((this.items || []).slice(start, end));
+      }
 
       // emit 'start' event
       if (start !== this.previousStart && this.startupLoop === false) {
-        this.start.emit({ start, end });
+        this.start.emit({start, end});
       }
 
       // emit 'end' event
       if (end !== this.previousEnd && this.startupLoop === false) {
-        this.end.emit({ start, end });
+        this.end.emit({start, end});
       }
 
       this.previousStart = start;
       this.previousEnd = end;
 
+      this.change.emit({start, end});
+
       if (this.startupLoop === true) {
         this.refresh();
-      } else {
-        this.change.emit({ start, end });
       }
-
     } else if (this.startupLoop === true) {
       this.startupLoop = false;
       this.refresh();
@@ -232,4 +251,5 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
   exports: [VirtualScrollComponent],
   declarations: [VirtualScrollComponent]
 })
-export class VirtualScrollModule { }
+export class VirtualScrollModule {
+}

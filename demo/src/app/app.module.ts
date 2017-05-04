@@ -8,6 +8,7 @@ import { MultiColListComponent } from './lists/multi-col-list.component';
 import { NgModule } from '@angular/core';
 import { VerticalListComponent } from './lists/vertical-list.component';
 import { VirtualScrollModule } from '../../../src/virtual-scroll';
+import { VirtualArrayComponent } from './lists/virtual-array.component';
 
 @NgModule({
     declarations: [
@@ -15,7 +16,8 @@ import { VirtualScrollModule } from '../../../src/virtual-scroll';
         ListItemComponent,
         ListWithApiComponent,
         MultiColListComponent,
-        VerticalListComponent
+        VerticalListComponent,
+        VirtualArrayComponent
     ],
     imports: [
         BrowserModule,

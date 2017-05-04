@@ -10,6 +10,9 @@ import { ViewEncapsulation } from '@angular/core';
         <h2>With <span>Single Column</span></h2>
         <vertical-list [items]="items"></vertical-list>
 
+        <h2>Virtual array</h2>
+        <virtual-array-list [items]="items"></virtual-array-list>
+
         <h2>With <span>Multiple Columns</span></h2>
         <multi-col-list [items]="items"></multi-col-list>
 
