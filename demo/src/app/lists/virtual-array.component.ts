@@ -7,6 +7,7 @@ import { ListItem } from './list-item.component';
   template: `
     <button (click)="reduceList()">Reduce to 100 Items</button>
     <button (click)="setToFullList()">Revert to 1000 Items</button>
+    <button (click)="toggleLoop()">{{loop ? 'Revert to normal' : 'Loop 20 Items'}}</button>
 
     <div class="status">
       Showing <span class="badge">{{indices?.start + 1}}</span>
@@ -22,7 +23,7 @@ import { ListItem } from './list-item.component';
       [childHeight]="100">
 
       <list-item *ngFor="let item of scrollItems" [item]="item"></list-item>
-      
+
     </virtual-scroll>
   `,
   styleUrls: ['./virtual-array.scss'],
@@ -35,21 +36,39 @@ export class VirtualArrayComponent implements OnChanges {
   indices: any;
 
   filteredList: ListItem[];
+  loop = 0;
 
   getList(start: number, end: number) {
+    if (this.loop) {
+      const items = (this.filteredList || []);
+
+      start = start % this.loop;
+      end = end % this.loop;
+
+      if (start > end) {
+        return items.slice(start, this.loop).concat(items.slice(0, end));
+      }
+    }
     return (this.filteredList || []).slice(start, end);
   }
 
   reduceList() {
     this.filteredList = (this.items || []).slice(0, 100);
+    this.loop = 0;
   }
 
   setToFullList() {
     this.filteredList = (this.items || []).slice();
+    this.loop = 0;
   }
 
   ngOnChanges() {
     this.setToFullList();
+  }
+
+  toggleLoop() {
+    this.filteredList = (this.filteredList || []).slice();
+    this.loop = this.loop ? 0 : 20;
   }
 
 }
