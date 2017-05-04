@@ -1,3 +1,5 @@
+## Note
+This is a clone of [Original project](https://github.com/rintoj/angular2-virtual-scroll)
 
 # angular2-virtual-scroll
 
