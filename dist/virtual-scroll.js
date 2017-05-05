@@ -3,9 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var core_1 = require("@angular/core");
 var common_1 = require("@angular/common");
 var VirtualScrollComponent = (function () {
-    function VirtualScrollComponent(element, renderer) {
+    function VirtualScrollComponent(element) {
         this.element = element;
-        this.renderer = renderer;
         this.items = [];
         this.update = new core_1.EventEmitter();
         this.isUpdateRequired = false;
@@ -15,7 +14,6 @@ var VirtualScrollComponent = (function () {
         this.startupLoop = true;
     }
     VirtualScrollComponent.prototype.ngOnInit = function () {
-        this.onScrollListener = this.renderer.listen(this.element.nativeElement, 'scroll', this.refresh.bind(this));
         this.scrollbarWidth = 0; // this.element.nativeElement.offsetWidth - this.element.nativeElement.clientWidth;
         this.scrollbarHeight = 0; // this.element.nativeElement.offsetHeight - this.element.nativeElement.clientHeight;
         this.isUpdateRequired = this.update.observers.length > 0;
@@ -24,15 +22,6 @@ var VirtualScrollComponent = (function () {
         this.previousStart = undefined;
         this.previousEnd = undefined;
         this.refresh();
-    };
-    VirtualScrollComponent.prototype.ngOnDestroy = function () {
-        // Check that listener has been attached properly:
-        // It may be undefined in some cases, e.g. if an exception is thrown, the component is
-        // not initialized properly but destroy may be called anyways (e.g. in testing).
-        if (this.onScrollListener !== undefined) {
-            // this removes the listener
-            this.onScrollListener();
-        }
     };
     VirtualScrollComponent.prototype.refresh = function () {
         requestAnimationFrame(this.calculateItems.bind(this));
@@ -43,6 +32,9 @@ var VirtualScrollComponent = (function () {
         var d = this.calculateDimensions();
         this.element.nativeElement.scrollTop = Math.floor(index / d.itemsPerRow) *
             d.childHeight - Math.max(0, (d.itemsPerCol - 1)) * d.childHeight;
+        this.refresh();
+    };
+    VirtualScrollComponent.prototype.onScroll = function () {
         this.refresh();
     };
     VirtualScrollComponent.prototype.getListLength = function () {
@@ -152,7 +144,6 @@ VirtualScrollComponent.decorators = [
 /** @nocollapse */
 VirtualScrollComponent.ctorParameters = function () { return [
     { type: core_1.ElementRef, },
-    { type: core_1.Renderer, },
 ]; };
 VirtualScrollComponent.propDecorators = {
     'items': [{ type: core_1.Input },],
@@ -167,6 +158,7 @@ VirtualScrollComponent.propDecorators = {
     'start': [{ type: core_1.Output },],
     'end': [{ type: core_1.Output },],
     'contentElementRef': [{ type: core_1.ViewChild, args: ['content', { read: core_1.ElementRef },] },],
+    'onScroll': [{ type: core_1.HostListener, args: ['scroll',] },],
 };
 exports.VirtualScrollComponent = VirtualScrollComponent;
 var VirtualScrollModule = (function () {

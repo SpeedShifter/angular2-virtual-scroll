@@ -2,14 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
+  EventEmitter, HostListener,
   Input,
   NgModule,
   OnChanges,
-  OnDestroy,
   OnInit,
   Output,
-  Renderer,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -52,7 +50,7 @@ export interface ChangeEvent {
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
+export class VirtualScrollComponent implements OnInit, OnChanges {
 
   @Input()
   items: any[] = [];
@@ -91,18 +89,16 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
   @ViewChild('content', {read: ElementRef})
   contentElementRef: ElementRef;
 
-  onScrollListener: Function;
   topPadding: number;
   scrollHeight: number;
   previousStart: number;
   previousEnd: number;
   startupLoop: boolean = true;
 
-  constructor(private element: ElementRef, private renderer: Renderer) {
+  constructor(private element: ElementRef) {
   }
 
   ngOnInit() {
-    this.onScrollListener = this.renderer.listen(this.element.nativeElement, 'scroll', this.refresh.bind(this));
     this.scrollbarWidth = 0; // this.element.nativeElement.offsetWidth - this.element.nativeElement.clientWidth;
     this.scrollbarHeight = 0; // this.element.nativeElement.offsetHeight - this.element.nativeElement.clientHeight;
 
@@ -115,16 +111,6 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
     this.refresh();
   }
 
-  ngOnDestroy() {
-    // Check that listener has been attached properly:
-    // It may be undefined in some cases, e.g. if an exception is thrown, the component is
-    // not initialized properly but destroy may be called anyways (e.g. in testing).
-    if (this.onScrollListener !== undefined) {
-      // this removes the listener
-      this.onScrollListener();
-    }
-  }
-
   refresh() {
     requestAnimationFrame(this.calculateItems.bind(this));
   }
@@ -135,6 +121,11 @@ export class VirtualScrollComponent implements OnInit, OnDestroy, OnChanges {
     let d = this.calculateDimensions();
     this.element.nativeElement.scrollTop = Math.floor(index / d.itemsPerRow) *
       d.childHeight - Math.max(0, (d.itemsPerCol - 1)) * d.childHeight;
+    this.refresh();
+  }
+
+  @HostListener('scroll')
+  onScroll() {
     this.refresh();
   }
 
