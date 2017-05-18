@@ -182,10 +182,6 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
   }
 
   private calculateItems() {
-    if (this.getListLength() === 0) {
-      return;
-    }
-
     let el = this.element.nativeElement;
 
     let d = this.calculateDimensions();
@@ -205,8 +201,8 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
     let maxStart = Math.max(0, maxStartEnd - d.itemsPerCol * d.itemsPerRow - d.itemsPerRow);
     let start = Math.min(maxStart, Math.floor(indexByScrollTop) * d.itemsPerRow);
 
-    if (start === Number.NaN || end === Number.NaN) {
-      return;
+    if (isNaN(start) || isNaN(end)) {
+      start = end = 0;
     }
 
     this.topPadding = d.childHeight * Math.ceil(start / d.itemsPerRow);

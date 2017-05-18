@@ -5,6 +5,7 @@ import { ListItem } from './list-item.component';
 @Component({
   selector: 'virtual-array-list',
   template: `
+    <button (click)="emptyList()">Empty list</button>
     <button (click)="reduceList()">Reduce to 100 Items</button>
     <button (click)="setToFullList()">Revert to 1000 Items</button>
     <button (click)="toggleLoop()">{{loop ? 'Revert to normal' : 'Loop 20 Items'}}</button>
@@ -53,6 +54,11 @@ export class VirtualArrayComponent implements OnChanges {
 
   reduceList() {
     this.filteredList = (this.items || []).slice(0, 100);
+    this.loop = 0;
+  }
+
+  emptyList() {
+    this.filteredList = [];
     this.loop = 0;
   }
 
