@@ -84,9 +84,6 @@ var VirtualScrollComponent = (function () {
         };
     };
     VirtualScrollComponent.prototype.calculateItems = function () {
-        if (this.getListLength() === 0) {
-            return;
-        }
         var el = this.element.nativeElement;
         var d = this.calculateDimensions();
         this.scrollHeight = d.childHeight * d.itemCount / d.itemsPerRow;
@@ -102,8 +99,8 @@ var VirtualScrollComponent = (function () {
         }
         var maxStart = Math.max(0, maxStartEnd - d.itemsPerCol * d.itemsPerRow - d.itemsPerRow);
         var start = Math.min(maxStart, Math.floor(indexByScrollTop) * d.itemsPerRow);
-        if (start === Number.NaN || end === Number.NaN) {
-            return;
+        if (isNaN(start) || isNaN(end)) {
+            start = end = 0;
         }
         this.topPadding = d.childHeight * Math.ceil(start / d.itemsPerRow);
         if (start !== this.previousStart || end !== this.previousEnd) {
