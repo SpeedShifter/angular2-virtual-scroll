@@ -5,7 +5,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,HostListener,
+  EventEmitter, HostListener,
   Input,
   NgModule,
   OnChanges,
@@ -127,8 +127,13 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     this.previousStart = undefined;
     this.previousEnd = undefined;
-    const items = (changes as any).items || {};
-    if ((changes as any).items != undefined && items.previousValue == undefined || items.previousValue.length === 0) {
+    const items = (changes as any).items || {},
+      origin = (changes as any).origin || {};
+    if ((changes as any).items != undefined && items.previousValue == undefined
+      || (items.previousValue && items.previousValue.length === 0)) {
+      this.startupLoop = true;
+    }
+    if (changes.origin != undefined && origin.previousValue == undefined) {
       this.startupLoop = true;
     }
     this.refresh();
@@ -144,11 +149,6 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
     let d = this.calculateDimensions();
     this.element.nativeElement.scrollTop = Math.floor(index / d.itemsPerRow) *
       d.childHeight - Math.max(0, (d.itemsPerCol - 1)) * d.childHeight;
-    this.refresh();
-  }
-
-  @HostListener('scroll')
-  onScroll() {
     this.refresh();
   }
 
