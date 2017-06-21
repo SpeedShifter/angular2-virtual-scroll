@@ -1,8 +1,11 @@
+import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/observable/of';
+
 import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter, HostListener,
+  EventEmitter,HostListener,
   Input,
   NgModule,
   OnChanges,
@@ -13,6 +16,8 @@ import {
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
 
 export interface ChangeEvent {
   start?: number;
@@ -20,7 +25,8 @@ export interface ChangeEvent {
 }
 
 @Component({
-  selector: 'virtual-scroll',
+  selector: 'virtual-scroll,[virtualScroll]',
+  exportAs: 'virtualScroll',
   template: `
     <div class="total-padding" [style.height]="scrollHeight + 'px'"></div>
     <div class="scrollable-content" #content [style.transform]="'translateY(' + topPadding + 'px)'">
@@ -89,6 +95,9 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
   @ViewChild('content', {read: ElementRef})
   contentElementRef: ElementRef;
 
+  scroll$: Subject<Event> = new Subject<Event>();
+
+  onScrollListener: Function;
   topPadding: number;
   scrollHeight: number;
   previousStart: number;
@@ -98,7 +107,17 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
   constructor(private element: ElementRef) {
   }
 
+  @HostListener('scroll')
+  onScroll(e: Event) {
+    this.scroll$.next();
+  }
+
   ngOnInit() {
+    this.scroll$.switchMap(() => {
+      this.refresh();
+      return Observable.of();
+    }).subscribe();
+
     this.scrollbarWidth = 0; // this.element.nativeElement.offsetWidth - this.element.nativeElement.clientWidth;
     this.scrollbarHeight = 0; // this.element.nativeElement.offsetHeight - this.element.nativeElement.clientHeight;
 
@@ -108,11 +127,15 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     this.previousStart = undefined;
     this.previousEnd = undefined;
+    const items = (changes as any).items || {};
+    if ((changes as any).items != undefined && items.previousValue == undefined || items.previousValue.length === 0) {
+      this.startupLoop = true;
+    }
     this.refresh();
   }
 
   refresh() {
-    requestAnimationFrame(this.calculateItems.bind(this));
+    requestAnimationFrame(() => this.calculateItems());
   }
 
   scrollInto(index: number) {
@@ -165,7 +188,8 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
     let itemsPerRow = Math.max(1, this.countItemsPerRow());
     let itemsPerRowByCalc = Math.max(1, Math.floor(viewWidth / childWidth));
     let itemsPerCol = Math.max(1, Math.floor(viewHeight / childHeight));
-    if (itemsPerCol === 1 && Math.floor(el.scrollTop / this.scrollHeight * itemCount) + itemsPerRowByCalc >= itemCount) {
+    let scrollTop = Math.max(0, el.scrollTop);
+    if (itemsPerCol === 1 && Math.floor(scrollTop / this.scrollHeight * itemCount) + itemsPerRowByCalc >= itemCount) {
       itemsPerRow = itemsPerRowByCalc;
     }
 
@@ -190,7 +214,8 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
       this.element.nativeElement.scrollTop = this.scrollHeight;
     }
 
-    let indexByScrollTop = el.scrollTop / this.scrollHeight * d.itemCount / d.itemsPerRow;
+    let scrollTop = Math.max(0, el.scrollTop);
+    let indexByScrollTop = scrollTop / this.scrollHeight * d.itemCount / d.itemsPerRow;
     let end = Math.min(d.itemCount, Math.ceil(indexByScrollTop) * d.itemsPerRow + d.itemsPerRow * (d.itemsPerCol + 1));
 
     let maxStartEnd = end;
@@ -201,14 +226,14 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
     let maxStart = Math.max(0, maxStartEnd - d.itemsPerCol * d.itemsPerRow - d.itemsPerRow);
     let start = Math.min(maxStart, Math.floor(indexByScrollTop) * d.itemsPerRow);
 
-    if (isNaN(start) || isNaN(end)) {
-      start = end = 0;
-    }
+    start = !isNaN(start) ? start : 0;
+    end = !isNaN(end) ? end : 0;
 
     start = Math.max(0, Math.min(this.getListLength(), start));
     end = Math.max(0, Math.min(this.getListLength(), end));
 
     this.topPadding = d.childHeight * Math.ceil(start / d.itemsPerRow);
+
     if (start !== this.previousStart || end !== this.previousEnd) {
 
       if (this.isUpdateRequired) { // we don't wont to make unnecessary slice operation

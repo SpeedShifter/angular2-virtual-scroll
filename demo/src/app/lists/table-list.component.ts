@@ -3,7 +3,7 @@ import { Component, Input, OnChanges } from '@angular/core';
 import { ListItem } from './list-item.component';
 
 @Component({
-  selector: 'vertical-list',
+  selector: 'table-list',
   template: `
     <button (click)="sortByName()">Sort By Name</button>
     <button (click)="sortByIndex()">Sort By Index</button>
@@ -20,15 +20,24 @@ import { ListItem } from './list-item.component';
 
     <virtual-scroll
       [items]="filteredList"
+      [childHeight]="43"
       (update)="scrollItems = $event"
       (change)="indices = $event">
-
-      <list-item *ngFor="let item of scrollItems" [item]="item"> </list-item>
-
+      <table>
+        <tr *ngFor="let item of scrollItems">
+          <td>{{item.index}}</td>
+          <td>{{item.name}}</td>
+          <td>{{item.gender}}</td>
+          <td>{{item.age}}</td>
+          <td>{{item.address}}</td>
+        </tr>
+      </table>
     </virtual-scroll>
-  `
+  `,
+
+  styleUrls: ['./table-list.scss']
 })
-export class VerticalListComponent implements OnChanges {
+export class TableListComponent implements OnChanges {
 
   @Input()
   items: ListItem[];

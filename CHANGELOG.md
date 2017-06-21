@@ -1,4 +1,14 @@
 
+# v0.1.7
+
+* import rxjs operators and object needed instead of RxJS library itself
+
+# v0.1.6
+
+* improve performance by using Observables for scroll event
+* add attribute selector
+* fixes #39 - infinite event loop with empty items array
+
 # v0.1.5
 
 * Bug fix: the data to "jump" once scrolled to the bottom, because maxStart is assumed to be evenly divisible by the number of items in each row. [#32](https://github.com/rintoj/angular2-virtual-scroll/issues/32)
