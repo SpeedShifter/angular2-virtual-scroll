@@ -34,8 +34,12 @@ var VirtualScrollComponent = (function () {
     VirtualScrollComponent.prototype.ngOnChanges = function (changes) {
         this.previousStart = undefined;
         this.previousEnd = undefined;
-        var items = changes.items || {};
-        if (changes.items != undefined && items.previousValue == undefined || items.previousValue.length === 0) {
+        var items = changes.items || {}, origin = changes.origin || {};
+        if (changes.items != undefined && items.previousValue == undefined
+            || (items.previousValue && items.previousValue.length === 0)) {
+            this.startupLoop = true;
+        }
+        if (changes.origin != undefined && origin.previousValue == undefined) {
             this.startupLoop = true;
         }
         this.refresh();
@@ -50,9 +54,6 @@ var VirtualScrollComponent = (function () {
         var d = this.calculateDimensions();
         this.element.nativeElement.scrollTop = Math.floor(index / d.itemsPerRow) *
             d.childHeight - Math.max(0, (d.itemsPerCol - 1)) * d.childHeight;
-        this.refresh();
-    };
-    VirtualScrollComponent.prototype.onScroll = function () {
         this.refresh();
     };
     VirtualScrollComponent.prototype.getListLength = function () {
@@ -119,12 +120,11 @@ var VirtualScrollComponent = (function () {
         }
         var maxStart = Math.max(0, maxStartEnd - d.itemsPerCol * d.itemsPerRow - d.itemsPerRow);
         var start = Math.min(maxStart, Math.floor(indexByScrollTop) * d.itemsPerRow);
-        if (isNaN(start) || isNaN(end)) {
-            start = end = 0;
-        }
+        start = !isNaN(start) ? start : 0;
+        end = !isNaN(end) ? end : 0;
+        start = Math.max(0, Math.min(this.getListLength(), start));
+        end = Math.max(0, Math.min(this.getListLength(), end));
         this.topPadding = d.childHeight * Math.ceil(start / d.itemsPerRow);
-        start = !isNaN(start) ? start : -1;
-        end = !isNaN(end) ? end : -1;
         if (start !== this.previousStart || end !== this.previousEnd) {
             if (this.isUpdateRequired) {
                 // update the scroll list
@@ -152,61 +152,34 @@ var VirtualScrollComponent = (function () {
     };
     return VirtualScrollComponent;
 }());
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Array)
-], VirtualScrollComponent.prototype, "items", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], VirtualScrollComponent.prototype, "scrollbarWidth", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], VirtualScrollComponent.prototype, "scrollbarHeight", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], VirtualScrollComponent.prototype, "childWidth", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], VirtualScrollComponent.prototype, "childHeight", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], VirtualScrollComponent.prototype, "update", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], VirtualScrollComponent.prototype, "change", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], VirtualScrollComponent.prototype, "start", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], VirtualScrollComponent.prototype, "end", void 0);
-__decorate([
-    core_1.ViewChild('content', { read: core_1.ElementRef }),
-    __metadata("design:type", core_1.ElementRef)
-], VirtualScrollComponent.prototype, "contentElementRef", void 0);
-__decorate([
-    core_1.HostListener('scroll'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Event]),
-    __metadata("design:returntype", void 0)
-], VirtualScrollComponent.prototype, "onScroll", null);
-VirtualScrollComponent = __decorate([
-    core_1.Component({
-        selector: 'virtual-scroll,[virtualScroll]',
-        exportAs: 'virtualScroll',
-        template: "\n    <div class=\"total-padding\" [style.height]=\"scrollHeight + 'px'\"></div>\n    <div class=\"scrollable-content\" #content [style.transform]=\"'translateY(' + topPadding + 'px)'\">\n      <ng-content></ng-content>\n    </div>\n  ",
-        styles: ["\n    :host {\n      overflow: hidden;\n      overflow-y: auto;\n      position: relative;\n      -webkit-overflow-scrolling: touch;\n    }\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      position: absolute;\n    }\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n  "]
-    }),
-    __metadata("design:paramtypes", [core_1.ElementRef, core_1.Renderer])
-], VirtualScrollComponent);
+VirtualScrollComponent.decorators = [
+    { type: core_1.Component, args: [{
+                selector: 'virtual-scroll,[virtualScroll]',
+                exportAs: 'virtualScroll',
+                template: "\n    <div class=\"total-padding\" [style.height]=\"scrollHeight + 'px'\"></div>\n    <div class=\"scrollable-content\" #content [style.transform]=\"'translateY(' + topPadding + 'px)'\">\n      <ng-content></ng-content>\n    </div>\n  ",
+                styles: ["\n    :host {\n      overflow: hidden;\n      overflow-y: auto;\n      position: relative;\n      -webkit-overflow-scrolling: touch;\n    }\n\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      position: absolute;\n    }\n\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n  "],
+                changeDetection: core_1.ChangeDetectionStrategy.OnPush
+            },] },
+];
+/** @nocollapse */
+VirtualScrollComponent.ctorParameters = function () { return [
+    { type: core_1.ElementRef, },
+]; };
+VirtualScrollComponent.propDecorators = {
+    'items': [{ type: core_1.Input },],
+    'origin': [{ type: core_1.Input },],
+    'length': [{ type: core_1.Input },],
+    'scrollbarWidth': [{ type: core_1.Input },],
+    'scrollbarHeight': [{ type: core_1.Input },],
+    'childWidth': [{ type: core_1.Input },],
+    'childHeight': [{ type: core_1.Input },],
+    'update': [{ type: core_1.Output },],
+    'change': [{ type: core_1.Output },],
+    'start': [{ type: core_1.Output },],
+    'end': [{ type: core_1.Output },],
+    'contentElementRef': [{ type: core_1.ViewChild, args: ['content', { read: core_1.ElementRef },] },],
+    'onScroll': [{ type: core_1.HostListener, args: ['scroll',] },],
+};
 exports.VirtualScrollComponent = VirtualScrollComponent;
 var VirtualScrollModule = (function () {
     function VirtualScrollModule() {

@@ -34,7 +34,6 @@ export declare class VirtualScrollComponent implements OnInit, OnChanges {
     ngOnChanges(changes: SimpleChanges): void;
     refresh(): void;
     scrollInto(index: number): void;
-    onScroll(): void;
     private getListLength();
     private countItemsPerRow();
     private calculateDimensions();
