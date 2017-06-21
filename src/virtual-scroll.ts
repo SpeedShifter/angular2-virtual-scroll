@@ -205,6 +205,9 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
       start = end = 0;
     }
 
+    start = Math.max(0, Math.min(this.getListLength(), start));
+    end = Math.max(0, Math.min(this.getListLength(), end));
+
     this.topPadding = d.childHeight * Math.ceil(start / d.itemsPerRow);
     if (start !== this.previousStart || end !== this.previousEnd) {
 
