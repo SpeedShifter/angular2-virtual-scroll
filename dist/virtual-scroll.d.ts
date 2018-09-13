@@ -62,6 +62,10 @@ export declare class VirtualScrollComponent implements OnInit, OnChanges, OnDest
     checkResizeInterval: number;
     protected _items: any[];
     items: any[];
+    protected _origin: any;
+    origin: any;
+    protected _length: number;
+    length: number;
     compareItems: (item1: any, item2: any) => boolean;
     protected _horizontal: boolean;
     horizontal: boolean;
@@ -92,6 +96,7 @@ export declare class VirtualScrollComponent implements OnInit, OnChanges, OnDest
     scrollToIndex(index: number, alignToBeginning?: boolean, additionalOffset?: number, animationMilliseconds?: number, animationCompletedCallback?: () => void): void;
     protected scrollToIndex_internal(index: number, alignToBeginning?: boolean, additionalOffset?: number, animationMilliseconds?: number, animationCompletedCallback?: () => void): void;
     constructor(element: ElementRef, renderer: Renderer2, zone: NgZone);
+    protected readonly listLength: number;
     protected previousScrollBoundingRect: ClientRect;
     protected checkScrollElementResized(): void;
     protected _invisiblePaddingProperty: any;

@@ -19,7 +19,7 @@ import { ListItem } from './list-item.component';
 
     <virtual-scroll
       [origin]="filteredList"
-      [length]="filteredList.length"
+      [length]="getLength()"
       (change)="scrollItems = getList($event.start, $event.end); indices = $event">
 
       <list-item *ngFor="let item of scrollItems" [item]="item"></list-item>
@@ -38,6 +38,10 @@ export class VirtualArrayComponent implements OnChanges {
   filteredList: ListItem[];
   loop = 0;
 
+  getLength() {
+    return this.filteredList.length
+  }
+
   getList(start: number, end: number) {
     if (this.loop) {
       const items = (this.filteredList || []);
@@ -49,7 +53,8 @@ export class VirtualArrayComponent implements OnChanges {
         return items.slice(start, this.loop).concat(items.slice(0, end));
       }
     }
-    return (this.filteredList || []).slice(start, end);
+
+    return (this.filteredList || []).slice(start, end + 1);
   }
 
   reduceList() {

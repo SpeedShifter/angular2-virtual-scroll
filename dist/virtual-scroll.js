@@ -16,6 +16,7 @@ var VirtualScrollComponent = (function () {
         this.resizeBypassRefreshTheshold = 5;
         this._checkResizeInterval = 1000;
         this._items = [];
+        this._length = 0;
         this.compareItems = function (item1, item2) { return item1 === item2; };
         this.update = new core_1.EventEmitter();
         this.vsUpdate = new core_1.EventEmitter();
@@ -113,6 +114,34 @@ var VirtualScrollComponent = (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(VirtualScrollComponent.prototype, "origin", {
+        get: function () {
+            return this._origin;
+        },
+        set: function (value) {
+            if (value === this._origin) {
+                return;
+            }
+            this._origin = value;
+            this.refresh_internal(true);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(VirtualScrollComponent.prototype, "length", {
+        get: function () {
+            return this._length;
+        },
+        set: function (value) {
+            if (value === this._length) {
+                return;
+            }
+            this._length = value || 0;
+            this.refresh_internal(true);
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(VirtualScrollComponent.prototype, "horizontal", {
         get: function () {
             return this._horizontal;
@@ -161,14 +190,15 @@ var VirtualScrollComponent = (function () {
         this.revertParentOverscroll();
     };
     VirtualScrollComponent.prototype.ngOnChanges = function (changes) {
-        var indexLengthChanged = this.cachedItemsLength !== this.items.length;
-        this.cachedItemsLength = this.items.length;
-        var firstRun = !changes.items || !changes.items.previousValue || changes.items.previousValue.length === 0;
+        var indexLengthChanged = this.cachedItemsLength !== this.listLength;
+        this.cachedItemsLength = this.listLength;
+        var firstRun = !changes.items || !changes.items.previousValue || changes.items.previousValue.length === 0
+            || changes.length === 0;
         this.refresh_internal(indexLengthChanged || firstRun);
     };
     VirtualScrollComponent.prototype.ngDoCheck = function () {
-        if (this.cachedItemsLength !== this.items.length) {
-            this.cachedItemsLength = this.items.length;
+        if (this.cachedItemsLength !== this.listLength) {
+            this.cachedItemsLength = this.listLength;
             this.refresh_internal(true);
         }
     };
@@ -180,7 +210,7 @@ var VirtualScrollComponent = (function () {
         if (additionalOffset === void 0) { additionalOffset = 0; }
         if (animationMilliseconds === void 0) { animationMilliseconds = undefined; }
         if (animationCompletedCallback === void 0) { animationCompletedCallback = undefined; }
-        var index = this.items.indexOf(item);
+        var index = this.items ? this.items.indexOf(item) : -1;
         if (index === -1) {
             return;
         }
@@ -268,6 +298,13 @@ var VirtualScrollComponent = (function () {
         animate();
         this.currentTween = newTween;
     };
+    Object.defineProperty(VirtualScrollComponent.prototype, "listLength", {
+        get: function () {
+            return this.length || (this.items && this.items.length) || 0;
+        },
+        enumerable: true,
+        configurable: true
+    });
     VirtualScrollComponent.prototype.checkScrollElementResized = function () {
         var boundingRect = this.getScrollElement().getBoundingClientRect();
         var sizeChanged;
@@ -360,10 +397,12 @@ var VirtualScrollComponent = (function () {
                 var emitIndexChangedEvents = true; // maxReRunTimes === 1 (would need to still run if didn't update if previous iteration had updated)
                 if (startChanged || endChanged) {
                     _this.zone.run(function () {
-                        // update the scroll list to trigger re-render of components in viewport
-                        _this.viewPortItems = viewport.startIndexWithBuffer >= 0 && viewport.endIndexWithBuffer >= 0 ? _this.items.slice(viewport.startIndexWithBuffer, viewport.endIndexWithBuffer + 1) : [];
-                        _this.update.emit(_this.viewPortItems);
-                        _this.vsUpdate.emit(_this.viewPortItems);
+                        if (_this.items) {
+                            // update the scroll list to trigger re-render of components in viewport
+                            _this.viewPortItems = viewport.startIndexWithBuffer >= 0 && viewport.endIndexWithBuffer >= 0 ? _this.items.slice(viewport.startIndexWithBuffer, viewport.endIndexWithBuffer + 1) : [];
+                            _this.update.emit(_this.viewPortItems);
+                            _this.vsUpdate.emit(_this.viewPortItems);
+                        }
                         if (emitIndexChangedEvents) {
                             if (startChanged) {
                                 _this.start.emit({ start: viewport.startIndex, end: viewport.endIndex });
@@ -496,10 +535,12 @@ var VirtualScrollComponent = (function () {
             }
             var itemsChanged = false;
             var arrayStartIndex = itemsPerWrapGroup * wrapGroupIndex;
-            for (var i = 0; i < itemsPerWrapGroup; ++i) {
-                if (!this.compareItems(oldWrapGroupDimension.items[i], this.items[arrayStartIndex + i])) {
-                    itemsChanged = true;
-                    break;
+            if (this.items) {
+                for (var i = 0; i < itemsPerWrapGroup; ++i) {
+                    if (!this.compareItems(oldWrapGroupDimension.items[i], this.items[arrayStartIndex + i])) {
+                        itemsChanged = true;
+                        break;
+                    }
                 }
             }
             if (!itemsChanged) {
@@ -512,7 +553,7 @@ var VirtualScrollComponent = (function () {
     };
     VirtualScrollComponent.prototype.calculateDimensions = function () {
         var scrollElement = this.getScrollElement();
-        var itemCount = this.items.length;
+        var itemCount = this.listLength;
         var maxCalculatedScrollBarSize = 25; // Note: Formula to auto-calculate doesn't work for ParentScroll, so we default to this if not set by consuming application
         this.calculatedScrollbarHeight = Math.max(Math.min(scrollElement.offsetHeight - scrollElement.clientHeight, maxCalculatedScrollBarSize), this.calculatedScrollbarHeight);
         this.calculatedScrollbarWidth = Math.max(Math.min(scrollElement.offsetWidth - scrollElement.clientWidth, maxCalculatedScrollBarSize), this.calculatedScrollbarWidth);
@@ -567,7 +608,7 @@ var VirtualScrollComponent = (function () {
                         this.wrapGroupDimensions.sumOfKnownWrapGroupChildHeights -= oldValue.childHeight || 0;
                     }
                     ++this.wrapGroupDimensions.numberOfKnownWrapGroupChildSizes;
-                    var items = this.items.slice(arrayStartIndex - itemsPerWrapGroup, arrayStartIndex);
+                    var items = this.items && this.items.slice(arrayStartIndex - itemsPerWrapGroup, arrayStartIndex) || [];
                     this.wrapGroupDimensions.maxChildSizePerWrapGroup[wrapGroupIndex] = {
                         childWidth: maxWidthForWrapGroup,
                         childHeight: maxHeightForWrapGroup,
@@ -754,7 +795,7 @@ var VirtualScrollComponent = (function () {
                         '[class.vertical]': "!horizontal",
                         '[class.selfScroll]': "!parentScroll"
                     },
-                    styles: ["\n    :host {\n      position: relative;\n\t  display: block;\n      -webkit-overflow-scrolling: touch;\n    }\n\t\n\t:host.horizontal.selfScroll {\n      overflow-y: visible;\n      overflow-x: auto;\n\t}\n\t:host.vertical.selfScroll {\n      overflow-y: auto;\n      overflow-x: visible;\n\t}\n\t\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      max-width: 100vw;\n      max-height: 100vh;\n      position: absolute;\n    }\n\n\t.scrollable-content ::ng-deep > * {\n\t\tbox-sizing: border-box;\n\t}\n\t\n\t:host.horizontal {\n\t\twhite-space: nowrap;\n\t}\n\t\n\t:host.horizontal .scrollable-content {\n\t\tdisplay: flex;\n\t}\n\t\n\t:host.horizontal .scrollable-content ::ng-deep > * {\n\t\tflex-shrink: 0;\n\t\tflex-grow: 0;\n\t\twhite-space: initial;\n\t}\n\t\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n    \n    :host.horizontal .total-padding {\n      height: 100%;\n    }\n  "]
+                    styles: ["\n    :host {\n      position: relative;\n      display: block;\n      -webkit-overflow-scrolling: touch;\n    }\n\n    :host.horizontal.selfScroll {\n      overflow-y: visible;\n      overflow-x: auto;\n    }\n    :host.vertical.selfScroll {\n      overflow-y: auto;\n      overflow-x: visible;\n    }\n\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      max-width: 100vw;\n      max-height: 100vh;\n      position: absolute;\n    }\n\n    .scrollable-content ::ng-deep > * {\n      box-sizing: border-box;\n    }\n\n    :host.horizontal {\n      white-space: nowrap;\n    }\n\n    :host.horizontal .scrollable-content {\n      display: flex;\n    }\n\n    :host.horizontal .scrollable-content ::ng-deep > * {\n      flex-shrink: 0;\n      flex-grow: 0;\n      white-space: initial;\n    }\n\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n\n    :host.horizontal .total-padding {\n      height: 100%;\n    }\n  "]
                 },] },
     ];
     /** @nocollapse */
@@ -776,6 +817,8 @@ var VirtualScrollComponent = (function () {
         'scrollThrottlingTime': [{ type: core_1.Input },],
         'checkResizeInterval': [{ type: core_1.Input },],
         'items': [{ type: core_1.Input },],
+        'origin': [{ type: core_1.Input },],
+        'length': [{ type: core_1.Input },],
         'compareItems': [{ type: core_1.Input },],
         'horizontal': [{ type: core_1.Input },],
         'parentScroll': [{ type: core_1.Input },],
