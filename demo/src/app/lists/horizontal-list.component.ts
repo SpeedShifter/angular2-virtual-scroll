@@ -3,15 +3,21 @@ import { VirtualScrollComponent } from 'angular2-virtual-scroll';
 import { ListItem } from './list-item.component';
 
 @Component({
-  selector: 'vertical-list',
+  selector: 'horizontal-list',
   template: `
+    <style>
+      ::ng-deep list-item.inline {
+        width: 400px;
+      }
+    </style>
+
     <button (click)="sortByName()">Sort By Name</button>
     <button (click)="sortByIndex()">Sort By Index</button>
     <button (click)="reduceListToEmpty()">Reduce to 0 Items</button>
     <button (click)="reduceList()">Reduce to 100 Items</button>
     <button (click)="setToFullList()">Revert to 1000 Items</button>
     <button (click)="scrollTo()">Scroll to 50</button>
-    <button (click)="randomHeight = !randomHeight">Toggle Random Height</button>
+    <button (click)="randomWidth = !randomWidth">Toggle Random Width</button>
 
     <div class="status">
         Showing <span class="badge">{{indices?.start}}</span>
@@ -21,19 +27,20 @@ import { ListItem } from './list-item.component';
       </div>
 
     <virtual-scroll
-      [enableUnequalChildrenSizes]="randomHeight"
+      [enableUnequalChildrenSizes]="randomWidth"
+      [horizontal]="true"
       [items]="filteredList"
       (update)="scrollItems = $event"
       (change)="indices = $event">
-
-      <list-item [randomHeight]="randomHeight" *ngFor="let item of scrollItems" [item]="item"> </list-item>
-
+      
+      <list-item [randomWidth]="randomWidth" *ngFor="let item of scrollItems" class="inline" [item]="item"> </list-item>
     </virtual-scroll>
-  `
+  `,
+  styleUrls: ['./horizontal-list.scss']
 })
-export class VerticalListComponent implements OnChanges {
+export class HorizontalListComponent implements OnChanges {
 
-  randomHeight = false;
+  randomWidth = false;
 
   @Input()
   items: ListItem[];

@@ -1,3 +1,88 @@
+# v0.4.12
+
+* viewPortIndices.arrayStartIndex renamed to viewPortIndices.startIndex and viewPortIndices.arrayEndIndex renamed to viewPortIndices.endIndex
+* Fix scrollbar measurements (horizontal/vertical calculations were backwards)
+* After component is removed it reverts css overflow-x/overflow-y of parentScroll back to their original values.
+* Previously, if scroll parent was resized it would automatically call Refresh. This still occurs, except if new size is 0.
+* Breaking Change: The start and end values of the change/start/end events were including bufferAmount, which made them confusing. This has been corrected.
+
+# v0.4.11
+
+* Bug fix to items array modifications with "enableUnequalChildrenSizes" which caused non-modified items to have to be re-measured.
+
+# v0.4.10
+
+* Minor bug fixes.
+* Prevent delay if scrollThrottlingTime is set to 0.
+* Fix bug where children would not be re-measured if their original measurement was 0 (due to elements still initializing)
+* Add vs* prefix to event names to prevent conflicts with native DOM events, example: <virtual-scroll (vsChange)=""><input (change)="" /></virtual-scroll>
+
+# v0.4.9
+
+* Default scrollThrottlingTime to 0.
+
+# v0.4.8
+
+* Improvements to "enableUnequalChildrenSizes". Thanks to Pavel Kukushkin (kykint) for Pull-Request.
+* Add scrollThrottlingTime parameter for performance reasons.
+* Use style box-sizing: border-box on child elements of viewport to enable padding/border to be taken into account when calculating sizes.
+
+# v0.4.7
+
+* useMarginInsteadOfTranslate flag. Defaults to false. This can affect performance (better/worse depending on your circumstances), and also creates a workaround for the transform+position:fixed browser bug.
+
+# v0.4.6
+
+* Update Readme
+
+# v0.4.5
+
+* Update Readme
+
+# v0.4.4
+
+* Added ability to use virtual scroll with different sized of elements
+* flag "enableUnequalChildrenSizes" was added (defaults to false) to bypass the different-height elements calculations (for users with fixed-height children to avoid the minor performance impact).
+Breaking Change: The value of ChangeEvent.end wasn't intuitive. This has been corrected. Both ChangeEvent.start and ChangeEvent.end are the 0-based array indexes of the items being rendered in the viewport. (Previously Change.End was the array index + 1)
+
+# v0.3.4
+
+* revert package.json to Angular 4 instead of Angular 6 since they should be backwards compatible
+
+# v0.3.3
+
+* update to latest npm versions. fix parentScroll. support horizontal scrollbars. auto-calculate scrollbar size. auto-refresh if items array changes. minor bug fixes
+
+# v0.3.2
+
+* Merge PR [!159](https://github.com/rintoj/angular2-virtual-scroll/pull/159), [!165](https://github.com/rintoj/angular2-virtual-scroll/pull/165), [!167](https://github.com/rintoj/angular2-virtual-scroll/pull/167), [!168](https://github.com/rintoj/angular2-virtual-scroll/pull/168)
+
+# v0.3.1
+
+* Merge PR [!117](https://github.com/rintoj/angular2-virtual-scroll/pull/117) - Run scroll and frame handlers outside of angular zone for performance
+
+# v0.3.0
+
+* Add smooth scroll for `scrollInto` function.
+
+# v0.2.2
+
+* Fixes #94
+
+# v0.2.1
+
+* Added ability to get viewPortItems as a field instead of event
+* Added easier ability of using window scrollbar
+
+# v0.2.0
+
+* Added ability to put other elements inside of scroll (Need to wrap list itself in @ContentChild('container'))
+* Added ability to use any parent with scrollbar instead of this element (@input() parentScroll)
+
+# v0.1.8
+
+* fixes [#74](https://github.com/rintoj/angular2-virtual-scroll/issues/74)
+* fix buffer for scroll to top amount [#71](https://github.com/rintoj/angular2-virtual-scroll/issues/71)
 
 # v0.1.7
 

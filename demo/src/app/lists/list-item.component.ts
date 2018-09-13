@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, HostBinding } from '@angular/core';
 
 export interface ListItem {
     index?: number;
@@ -28,4 +28,42 @@ export interface ListItem {
 export class ListItemComponent {
     @Input()
     item: ListItem;
+
+    @Input()
+    randomWidth: boolean = false;
+
+    @Input()
+    randomHeight: boolean = false;
+
+  @HostBinding('style.width')
+  public get styleWidth(): string {
+    if (!this.randomWidth)
+    {
+      return undefined;
+    }
+
+    return (100 + this.stringToHash(this.item.name) % 900).toString() + 'px';
+  }
+
+  @HostBinding('style.height')
+  public get styleHeight(): string {
+    if (!this.randomHeight) {
+      return undefined;
+    }
+
+    return (50 + this.stringToHash(this.item.name) % 450).toString() + 'px';
+  }
+
+  @HostBinding('style.border')
+  public get styleBorder(): string {
+    if (!this.randomWidth && !this.randomHeight) {
+      return undefined;
+    }
+
+    return '1px solid black';
+  }
+
+  private stringToHash(text: string): number {
+    return [].reduce.call(text, (accumulator, character) => (accumulator << 5) - accumulator + character.charCodeAt(0), 0);
+  }
 }
