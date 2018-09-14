@@ -283,7 +283,7 @@ var VirtualScrollComponent = (function () {
         })
             .start();
         var animate = function (time) {
-            if (!newTween["isPlaying"]()) {
+            if (!newTween['isPlaying']()) {
                 return;
             }
             newTween.update(time);
@@ -453,7 +453,9 @@ var VirtualScrollComponent = (function () {
             else {
                 _this.disposeScrollHandler = _this.renderer.listen(scrollElement, 'scroll', _this.refresh_throttled);
                 if (_this._checkResizeInterval > 0) {
-                    _this.checkScrollElementResizedTimer = setInterval(function () { _this.checkScrollElementResized(); }, _this._checkResizeInterval);
+                    _this.checkScrollElementResizedTimer = setInterval(function () {
+                        _this.checkScrollElementResized();
+                    }, _this._checkResizeInterval);
                 }
             }
         });
@@ -791,11 +793,11 @@ var VirtualScrollComponent = (function () {
                     exportAs: 'virtualScroll',
                     template: "\n    <div class=\"total-padding\" #invisiblePadding></div>\n    <div class=\"scrollable-content\" #content>\n      <ng-content></ng-content>\n    </div>\n  ",
                     host: {
-                        '[class.horizontal]': "horizontal",
-                        '[class.vertical]': "!horizontal",
-                        '[class.selfScroll]': "!parentScroll"
+                        '[class.horizontal]': 'horizontal',
+                        '[class.vertical]': '!horizontal',
+                        '[class.selfScroll]': '!parentScroll'
                     },
-                    styles: ["\n    :host {\n      position: relative;\n      display: block;\n      -webkit-overflow-scrolling: touch;\n    }\n\n    :host.horizontal.selfScroll {\n      overflow-y: visible;\n      overflow-x: auto;\n    }\n    :host.vertical.selfScroll {\n      overflow-y: auto;\n      overflow-x: visible;\n    }\n\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      max-width: 100vw;\n      max-height: 100vh;\n      position: absolute;\n    }\n\n    .scrollable-content ::ng-deep > * {\n      box-sizing: border-box;\n    }\n\n    :host.horizontal {\n      white-space: nowrap;\n    }\n\n    :host.horizontal .scrollable-content {\n      display: flex;\n    }\n\n    :host.horizontal .scrollable-content ::ng-deep > * {\n      flex-shrink: 0;\n      flex-grow: 0;\n      white-space: initial;\n    }\n\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n\n    :host.horizontal .total-padding {\n      height: 100%;\n    }\n  "]
+                    styles: ["\n    :host {\n      position: relative;\n      display: block;\n      -webkit-overflow-scrolling: touch;\n    }\n\n    :host.horizontal.selfScroll {\n      overflow-y: visible;\n      overflow-x: auto;\n    }\n\n    :host.vertical.selfScroll {\n      overflow-y: auto;\n      overflow-x: visible;\n    }\n\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      max-width: 100vw;\n      max-height: 100vh;\n      position: absolute;\n    }\n\n    .scrollable-content ::ng-deep > * {\n      box-sizing: border-box;\n    }\n\n    :host.horizontal {\n      white-space: nowrap;\n    }\n\n    :host.horizontal .scrollable-content {\n      display: flex;\n    }\n\n    :host.horizontal .scrollable-content ::ng-deep > * {\n      flex-shrink: 0;\n      flex-grow: 0;\n      white-space: initial;\n    }\n\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n\n    :host.horizontal .total-padding {\n      height: 100%;\n    }\n  "]
                 },] },
     ];
     /** @nocollapse */

@@ -351,8 +351,8 @@ export class VirtualScrollComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public ngOnChanges(changes: any) {
-    let indexLengthChanged = this.cachedItemsLength !== this.items.length;
-    this.cachedItemsLength = this.items.length;
+    let indexLengthChanged = this.cachedItemsLength !== this.listLength;
+    this.cachedItemsLength = this.listLength;
 
     const firstRun: boolean = !changes.items || !changes.items.previousValue || changes.items.previousValue.length === 0
       || changes.length === 0;
