@@ -66,6 +66,7 @@ export interface IViewport extends IPageInfoWithBuffer {
   selector: 'virtual-scroll,[virtualScroll]',
   exportAs: 'virtualScroll',
   template: `
+    <ng-content select="[outbounds]"></ng-content>
     <div class="total-padding" #invisiblePadding></div>
     <div class="scrollable-content" #content>
       <ng-content></ng-content>

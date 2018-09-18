@@ -791,7 +791,7 @@ var VirtualScrollComponent = (function () {
         { type: core_1.Component, args: [{
                     selector: 'virtual-scroll,[virtualScroll]',
                     exportAs: 'virtualScroll',
-                    template: "\n    <div class=\"total-padding\" #invisiblePadding></div>\n    <div class=\"scrollable-content\" #content>\n      <ng-content></ng-content>\n    </div>\n  ",
+                    template: "\n    <ng-content select=\"[outbounds]\"></ng-content>\n    <div class=\"total-padding\" #invisiblePadding></div>\n    <div class=\"scrollable-content\" #content>\n      <ng-content></ng-content>\n    </div>\n  ",
                     host: {
                         '[class.horizontal]': 'horizontal',
                         '[class.vertical]': '!horizontal',
