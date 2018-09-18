@@ -4,9 +4,8 @@ require("rxjs/add/operator/switchMap");
 require("rxjs/add/observable/of");
 var core_1 = require("@angular/core");
 var common_1 = require("@angular/common");
-var Observable_1 = require("rxjs/Observable");
 var Subject_1 = require("rxjs/Subject");
-var VirtualScrollComponent = (function () {
+var VirtualScrollComponent = /** @class */ (function () {
     function VirtualScrollComponent(element) {
         this.element = element;
         this.items = [];
@@ -22,11 +21,7 @@ var VirtualScrollComponent = (function () {
         this.scroll$.next();
     };
     VirtualScrollComponent.prototype.ngOnInit = function () {
-        var _this = this;
-        this.scroll$.switchMap(function () {
-            _this.refresh();
-            return Observable_1.Observable.of();
-        }).subscribe();
+        this.scroll$.subscribe(this.refresh.bind(this));
         this.scrollbarWidth = 0; // this.element.nativeElement.offsetWidth - this.element.nativeElement.clientWidth;
         this.scrollbarHeight = 0; // this.element.nativeElement.offsetHeight - this.element.nativeElement.clientHeight;
         this.isUpdateRequired = this.update.observers.length > 0;
@@ -126,7 +121,7 @@ var VirtualScrollComponent = (function () {
         end = Math.max(0, Math.min(this.getListLength(), end));
         this.topPadding = d.childHeight * Math.ceil(start / d.itemsPerRow);
         if (start !== this.previousStart || end !== this.previousEnd) {
-            if (this.isUpdateRequired) {
+            if (this.isUpdateRequired) { // we don't wont to make unnecessary slice operation
                 // update the scroll list
                 this.update.emit((this.items || []).slice(start, end));
             }
@@ -150,50 +145,50 @@ var VirtualScrollComponent = (function () {
             this.refresh();
         }
     };
+    VirtualScrollComponent.decorators = [
+        { type: core_1.Component, args: [{
+                    selector: 'virtual-scroll,[virtualScroll]',
+                    exportAs: 'virtualScroll',
+                    template: "\n    <div class=\"total-padding\" [style.height]=\"scrollHeight + 'px'\"></div>\n    <div class=\"scrollable-content\" #content [style.transform]=\"'translateY(' + topPadding + 'px)'\">\n      <ng-content></ng-content>\n    </div>\n  ",
+                    styles: ["\n    :host {\n      overflow: hidden;\n      overflow-y: auto;\n      position: relative;\n      -webkit-overflow-scrolling: touch;\n    }\n\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      position: absolute;\n    }\n\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n  "],
+                    changeDetection: core_1.ChangeDetectionStrategy.OnPush
+                },] },
+    ];
+    /** @nocollapse */
+    VirtualScrollComponent.ctorParameters = function () { return [
+        { type: core_1.ElementRef, },
+    ]; };
+    VirtualScrollComponent.propDecorators = {
+        'items': [{ type: core_1.Input },],
+        'origin': [{ type: core_1.Input },],
+        'length': [{ type: core_1.Input },],
+        'scrollbarWidth': [{ type: core_1.Input },],
+        'scrollbarHeight': [{ type: core_1.Input },],
+        'childWidth': [{ type: core_1.Input },],
+        'childHeight': [{ type: core_1.Input },],
+        'update': [{ type: core_1.Output },],
+        'change': [{ type: core_1.Output },],
+        'start': [{ type: core_1.Output },],
+        'end': [{ type: core_1.Output },],
+        'contentElementRef': [{ type: core_1.ViewChild, args: ['content', { read: core_1.ElementRef },] },],
+        'onScroll': [{ type: core_1.HostListener, args: ['scroll',] },],
+    };
     return VirtualScrollComponent;
 }());
-VirtualScrollComponent.decorators = [
-    { type: core_1.Component, args: [{
-                selector: 'virtual-scroll,[virtualScroll]',
-                exportAs: 'virtualScroll',
-                template: "\n    <div class=\"total-padding\" [style.height]=\"scrollHeight + 'px'\"></div>\n    <div class=\"scrollable-content\" #content [style.transform]=\"'translateY(' + topPadding + 'px)'\">\n      <ng-content></ng-content>\n    </div>\n  ",
-                styles: ["\n    :host {\n      overflow: hidden;\n      overflow-y: auto;\n      position: relative;\n      -webkit-overflow-scrolling: touch;\n    }\n\n    .scrollable-content {\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      position: absolute;\n    }\n\n    .total-padding {\n      width: 1px;\n      opacity: 0;\n    }\n  "],
-                changeDetection: core_1.ChangeDetectionStrategy.OnPush
-            },] },
-];
-/** @nocollapse */
-VirtualScrollComponent.ctorParameters = function () { return [
-    { type: core_1.ElementRef, },
-]; };
-VirtualScrollComponent.propDecorators = {
-    'items': [{ type: core_1.Input },],
-    'origin': [{ type: core_1.Input },],
-    'length': [{ type: core_1.Input },],
-    'scrollbarWidth': [{ type: core_1.Input },],
-    'scrollbarHeight': [{ type: core_1.Input },],
-    'childWidth': [{ type: core_1.Input },],
-    'childHeight': [{ type: core_1.Input },],
-    'update': [{ type: core_1.Output },],
-    'change': [{ type: core_1.Output },],
-    'start': [{ type: core_1.Output },],
-    'end': [{ type: core_1.Output },],
-    'contentElementRef': [{ type: core_1.ViewChild, args: ['content', { read: core_1.ElementRef },] },],
-    'onScroll': [{ type: core_1.HostListener, args: ['scroll',] },],
-};
 exports.VirtualScrollComponent = VirtualScrollComponent;
-var VirtualScrollModule = (function () {
+var VirtualScrollModule = /** @class */ (function () {
     function VirtualScrollModule() {
     }
+    VirtualScrollModule.decorators = [
+        { type: core_1.NgModule, args: [{
+                    imports: [common_1.CommonModule],
+                    exports: [VirtualScrollComponent],
+                    declarations: [VirtualScrollComponent]
+                },] },
+    ];
+    /** @nocollapse */
+    VirtualScrollModule.ctorParameters = function () { return []; };
     return VirtualScrollModule;
 }());
-VirtualScrollModule.decorators = [
-    { type: core_1.NgModule, args: [{
-                imports: [common_1.CommonModule],
-                exports: [VirtualScrollComponent],
-                declarations: [VirtualScrollComponent]
-            },] },
-];
-/** @nocollapse */
-VirtualScrollModule.ctorParameters = function () { return []; };
 exports.VirtualScrollModule = VirtualScrollModule;
 //# sourceMappingURL=virtual-scroll.js.map

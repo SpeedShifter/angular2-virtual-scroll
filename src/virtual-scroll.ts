@@ -16,7 +16,6 @@ import {
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 
 export interface ChangeEvent {
@@ -113,10 +112,7 @@ export class VirtualScrollComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
-    this.scroll$.switchMap(() => {
-      this.refresh();
-      return Observable.of();
-    }).subscribe();
+    this.scroll$.subscribe(this.refresh.bind(this));
 
     this.scrollbarWidth = 0; // this.element.nativeElement.offsetWidth - this.element.nativeElement.clientWidth;
     this.scrollbarHeight = 0; // this.element.nativeElement.offsetHeight - this.element.nativeElement.clientHeight;
